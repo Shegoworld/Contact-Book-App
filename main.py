@@ -22,20 +22,29 @@ def accept():
     return valid
 
 
-# The dictionary to store Name-Number pair is initialized
-store = {}
+# The dictionary to store Name-Number pair is initialized and loaded with the saved contacts
+import json
+
+def load_contacts():
+    global store
+    try:
+        with open("contacts.json", "r") as contacts:
+            store = json.load(contacts)
+    except FileNotFoundError:
+        store = {}
+
+ # The logic to save contacts as file
+#import json
+def save_contacts():
+    with open("contacts.json", "w") as contacts:
+        json.dump(store, contacts, indent = 4)
 
 
 # To view the contacts in the contact book
-def viewlist():
-    i = 1
-    for el in sorted(store):
-        print(f"{i}. {el} - {store[el]}")
-        i += 1
-    '''
-    for i, (name, number) in enumerate(store.items(), start=1):
-    print(f"{i}. {name} - {number}")
-    '''
+def view_list():
+    for i, (list_name, list_number) in enumerate(sorted(store.items()), start=1):
+        print(f"{i}. {list_name} - {list_number}")
+
 
 
 # To check if a mobile number is valid
@@ -51,7 +60,7 @@ def num_check():
         else:
             return phone
 
-
+load_contacts()
 # The Code block to loop the menu
 while True:
     choice = accept()
@@ -61,32 +70,26 @@ while True:
         print("You have selected Add Contact")
         while True:
             name = input("Enter the name: ")
-            name_exist = False
-            for x in store:
-                if name.lower() == x.lower():
-                    name_exist = True
-                    print("Name already exist \n ")
-                    break
-            # Cleaner for checking if name exists
-            '''
+           # name_exist = False
             if name.lower() in [x.lower() for x in store]:
                 print("Name already exists\n")
                 continue
-            '''
-            if not name_exist:
-                print(f"{name} added successfully")
+
+            else:
                 break
 
         while True:
             mobile = num_check()
-            for name, number in store.items():
-                if mobile == number:
-                    print(f"Number already exists under {name}")
-                print()
-                continue
+            if mobile in store.values():
+                for existing_name, number in store.items():
+                    if number == mobile:
+                        print(f"Number already exists under {existing_name} \n")
+                        break
+
             else:
                 store[name] = mobile
-                print()
+                print(f"{mobile} stored as {name} \n")
+                save_contacts()
                 break
 
 
@@ -94,11 +97,11 @@ while True:
     # The logic for viewing contacts
     elif choice == 2:
         print("You have selected View Contacts")
-        print("Your contacts are: ")
         if not store:
             print("There is no contact in Contact Book")
         else:
-            viewlist()
+            print("Your contacts are: ")
+            view_list()
         print()
 
     # The logic for Searching contact
@@ -121,25 +124,34 @@ while True:
     elif choice == 4:
         print("You have selected Delete Contact")
         if not store:
-            print("There is no contact to delete")
+            print("There is no contact to delete \n")
         else:
             print("Select a number to delete contact")
-            viewlist()
+            view_list()
             while True:
-                delete = input("Enter number to delete contact: ")
+                delete = input("\nEnter number to delete contact: ")
                 try:
                     is_valid = int(delete)
                     if is_valid in range(1, len(store)+1):
-                        del_key = list(sorted(store.keys()))[is_valid - 1]
-                        print(f"{del_key} deleted successfully")
-                        store.pop(del_key)
+                        while True:
+                            sure = input("Are you sure? (y/n): ")
+                            if sure.lower() == "y":
+                                del_key = list(sorted(store.keys()))[is_valid - 1]
+                                print(f"{del_key} deleted successfully \n")
+                                store.pop(del_key)
+                                save_contacts()
+                                break
+                            elif sure.lower() == "n":
+                                print("Delete operation cancelled successfully \n")
+                                break
+                            else:
+                                print("Enter 'y' or 'n'")
                         break
                     else:
                         print("Enter a valid number")
 
                 except ValueError:
                     print("You didn't pick a number")
-        print()
 
     #When the user picks Exit, the loop breaks
     else:
